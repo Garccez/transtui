@@ -16,12 +16,12 @@ pub fn handle_events(app: &mut App, key: KeyEvent) -> Result<()> {
                 match key.code {
                     KeyCode::Enter | KeyCode::Char(' ') | KeyCode::Esc => {
                         app.state = confirmation.return_to.clone();
-                    },
-                    _ => {},
+                    }
+                    _ => {}
                 }
             }
             Ok(())
-        },
+        }
         AppState::Exiting => Ok(()),
     }
 }
@@ -49,28 +49,28 @@ fn handle_file_selection(app: &mut App, key: KeyEvent) -> Result<()> {
                 let data: Value = serde_json::from_str(&content)?;
 
                 if let Value::Object(original_map) = data {
-                    // Carregar traduções existentes
-                    let existing_translations = file_operations::load_existing_translations(file_path)?;
-                    
+                    let existing_translations =
+                        file_operations::load_existing_translations(file_path)?;
+
                     let toml_path = file_path.with_extension("toml");
                     let translated_keys = file_operations::load_translated_keys(&toml_path)?;
-                    
+
                     let mut translated_count = 0;
-                    let entries = original_map.clone()
+                    let entries = original_map
+                        .clone()
                         .into_iter()
                         .map(|(key, original_value)| {
                             let is_translated = translated_keys.contains(&key);
                             if is_translated {
                                 translated_count += 1;
                             }
-                            
-                            // Usar a tradução existente se disponível, caso contrário usar o valor original
+
                             let translated = if let Some(trans) = existing_translations.get(&key) {
                                 trans.clone()
                             } else {
                                 original_value.clone()
                             };
-                            
+
                             crate::app::Entry {
                                 key: key.clone(),
                                 original: original_value,
@@ -81,7 +81,7 @@ fn handle_file_selection(app: &mut App, key: KeyEvent) -> Result<()> {
                         .collect();
 
                     let total_keys = original_map.len();
-                    
+
                     let mut table_state = tui::widgets::TableState::default();
                     table_state.select(Some(0));
 
@@ -103,6 +103,9 @@ fn handle_file_selection(app: &mut App, key: KeyEvent) -> Result<()> {
                     app.state = AppState::Editing;
                 }
             }
+        }
+        KeyCode::F(2) => {
+            app.switch_language()?;
         }
         KeyCode::Esc => app.state = AppState::Exiting,
         _ => {}
@@ -144,7 +147,9 @@ fn handle_editing(app: &mut App, key: KeyEvent) -> Result<()> {
                 KeyCode::Down => {
                     if !state.search_results.is_empty() {
                         let new_selection = match state.search_selection {
-                            Some(current) if current < state.search_results.len() - 1 => Some(current + 1),
+                            Some(current) if current < state.search_results.len() - 1 => {
+                                Some(current + 1)
+                            }
                             None => Some(0),
                             _ => None,
                         };
@@ -195,7 +200,8 @@ fn handle_editing(app: &mut App, key: KeyEvent) -> Result<()> {
                     }
                 }
                 KeyCode::Char(c) => {
-                    let byte_pos: usize = state.input
+                    let byte_pos: usize = state
+                        .input
                         .chars()
                         .take(state.cursor_pos)
                         .map(|c| c.len_utf8())
@@ -205,34 +211,40 @@ fn handle_editing(app: &mut App, key: KeyEvent) -> Result<()> {
                 }
                 KeyCode::Backspace => {
                     if state.cursor_pos > 0 {
-                        let byte_start: usize = state.input
+                        let byte_start: usize = state
+                            .input
                             .chars()
                             .take(state.cursor_pos - 1)
                             .map(|c| c.len_utf8())
                             .sum();
-                        let byte_end: usize = byte_start + state.input
-                            .chars()
-                            .nth(state.cursor_pos - 1)
-                            .map(|c| c.len_utf8())
-                            .unwrap_or(0);
-                        
+                        let byte_end: usize = byte_start
+                            + state
+                                .input
+                                .chars()
+                                .nth(state.cursor_pos - 1)
+                                .map(|c| c.len_utf8())
+                                .unwrap_or(0);
+
                         state.input.drain(byte_start..byte_end);
                         state.cursor_pos -= 1;
                     }
                 }
                 KeyCode::Delete => {
                     if state.cursor_pos < state.input.chars().count() {
-                        let byte_start: usize = state.input
+                        let byte_start: usize = state
+                            .input
                             .chars()
                             .take(state.cursor_pos)
                             .map(|c| c.len_utf8())
                             .sum();
-                        let byte_end: usize = byte_start + state.input
-                            .chars()
-                            .nth(state.cursor_pos)
-                            .map(|c| c.len_utf8())
-                            .unwrap_or(0);
-                        
+                        let byte_end: usize = byte_start
+                            + state
+                                .input
+                                .chars()
+                                .nth(state.cursor_pos)
+                                .map(|c| c.len_utf8())
+                                .unwrap_or(0);
+
                         state.input.drain(byte_start..byte_end);
                     }
                 }
@@ -246,7 +258,6 @@ fn handle_editing(app: &mut App, key: KeyEvent) -> Result<()> {
                     app.toggle_translation()?;
                 }
                 KeyCode::Char('b') => {
-                    // Salvar sem sair
                     app.save_current_file()?;
                 }
                 KeyCode::Char('s') => {
@@ -276,6 +287,9 @@ fn handle_editing(app: &mut App, key: KeyEvent) -> Result<()> {
                         state.input = format_json_value(&state.entries[selected].translated);
                         state.cursor_pos = state.input.chars().count();
                     }
+                }
+                KeyCode::F(2) => {
+                    app.switch_language()?;
                 }
                 KeyCode::Esc => {
                     app.save_current_file()?;

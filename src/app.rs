@@ -6,13 +6,20 @@ use std::time::{Duration, Instant};
 use tui::widgets::{ListState, TableState};
 
 use crate::file_operations;
+use crate::localization;
 
 #[derive(Clone, PartialEq)]
 pub enum AppState {
     FileSelection,
     Editing,
-	SaveConfirmation,
+    SaveConfirmation,
     Exiting,
+}
+
+#[derive(Clone, PartialEq)]
+pub enum Language {
+    EN,
+    PT,
 }
 
 pub struct FileSelectionState {
@@ -56,6 +63,8 @@ pub struct TranslatedKeysData {
 
 pub struct App {
     pub state: AppState,
+    pub language: Language,
+    pub locale: localization::Locale,
     pub file_selection: FileSelectionState,
     pub editing: Option<EditingState>,
     pub save_confirmation: Option<SaveConfirmationState>,
@@ -69,12 +78,17 @@ impl App {
             list_state.select(Some(0));
         }
 
+        let language = Language::PT;
+        let locale = localization::Locale::load(match language {
+            Language::EN => "en",
+            Language::PT => "pt",
+        })?;
+
         Ok(Self {
             state: AppState::FileSelection,
-            file_selection: FileSelectionState {
-                files,
-                list_state,
-            },
+            language,
+            locale,
+            file_selection: FileSelectionState { files, list_state },
             editing: None,
             save_confirmation: None,
         })
@@ -140,6 +154,19 @@ impl App {
         self.file_selection
             .list_state
             .selected()
-            .map(|selected| &self.file_selection.files[selected]).map(|v| &**v)
+            .map(|selected| &self.file_selection.files[selected])
+            .map(|v| &**v)
+    }
+
+    pub fn switch_language(&mut self) -> Result<()> {
+        self.language = match self.language {
+            Language::EN => Language::PT,
+            Language::PT => Language::EN,
+        };
+        self.locale = localization::Locale::load(match self.language {
+            Language::EN => "en",
+            Language::PT => "pt",
+        })?;
+        Ok(())
     }
 }
