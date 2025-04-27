@@ -1,11 +1,7 @@
 [package]
-name = "transtui-rs"
+name = "transtui"
 version = "0.1.0"
 edition = "2024"
-
-[[bin]]
-name = "transtui"
-path = "src/main.rs"
 
 [dependencies]
 serde_json = { version = "1.0", features = ["preserve_order"] }
