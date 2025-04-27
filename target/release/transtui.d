@@ -1,1 +1,0 @@
-/home/garccez/Projetos/Rust/transtui-rs/target/release/transtui: /home/garccez/Projetos/Rust/transtui-rs/src/app.rs /home/garccez/Projetos/Rust/transtui-rs/src/file_operations.rs /home/garccez/Projetos/Rust/transtui-rs/src/handlers.rs /home/garccez/Projetos/Rust/transtui-rs/src/main.rs /home/garccez/Projetos/Rust/transtui-rs/src/ui.rs
