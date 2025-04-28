@@ -17,10 +17,10 @@ impl Locale {
             crate::app::Language::EN => EN_TRANSLATIONS,
             crate::app::Language::PT => PT_TRANSLATIONS,
         };
-        
+
         Ok(toml::from_str(content)?)
     }
-	
+
     pub fn get<'a>(&'a self, key: &'a str) -> &'a str {
         self.ui.get(key).map(|s| s.as_str()).unwrap_or(key)
     }

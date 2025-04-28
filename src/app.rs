@@ -72,23 +72,22 @@ pub struct App {
 
 impl App {
     pub fn new() -> Result<Self> {
-        let files = file_operations::list_json_files()?;
+        let language = Language::PT;
+        let locale = localization::Locale::from_language(language.clone())?;
+        
+        let translation_suffix = locale.get("translation_suffix");
+        let files = file_operations::list_json_files(translation_suffix)?;
+
         let mut list_state = ListState::default();
         if !files.is_empty() {
             list_state.select(Some(0));
         }
 
-        let language = Language::PT;
-        let locale = localization::Locale::from_language(language.clone())?;
-
         Ok(Self {
             state: AppState::FileSelection,
             language,
             locale,
-            file_selection: FileSelectionState {
-                files,
-                list_state,
-            },
+            file_selection: FileSelectionState { files, list_state },
             editing: None,
             save_confirmation: None,
         })
@@ -139,7 +138,11 @@ impl App {
 
     pub fn save_current_file(&mut self) -> Result<()> {
         if let Some(state) = &mut self.editing {
-            file_operations::save_translated_json(state)?;
+            file_operations::save_translated_json(
+                state,
+                self.locale.get("translations_folder"),
+                self.locale.get("translation_suffix"),
+            )?;
             state.save_notification = Some(Instant::now());
         }
         Ok(())

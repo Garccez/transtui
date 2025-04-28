@@ -261,13 +261,13 @@ pub fn render_save_confirmation(
     app: &App,
 ) {
     let area = frame.size();
-    
+
     // Criar uma área escurecida para o fundo do diálogo
     frame.render_widget(
         Block::default().style(Style::default().bg(Color::DarkGray)),
         area,
     );
-    
+
     // Define o tamanho do popup - 50% da largura e 30% da altura
     let popup_area = centered_rect(50, 30, area);
 
@@ -279,7 +279,7 @@ pub fn render_save_confirmation(
         .title(app.locale.get("warning_title"))
         .borders(Borders::ALL)
         .style(Style::default().bg(Color::DarkGray).fg(Color::White));
-    
+
     frame.render_widget(block, popup_area);
 
     // Área interna para o conteúdo do popup
@@ -287,10 +287,10 @@ pub fn render_save_confirmation(
         .direction(Direction::Vertical)
         .margin(1)
         .constraints([
-            Constraint::Length(3),  // Para a mensagem
-            Constraint::Length(2),  // Espaço entre a mensagem e o botão
-            Constraint::Length(1),  // Para o botão (reduzida a altura)
-            Constraint::Min(0),     // Espaço flexível abaixo do botão
+            Constraint::Length(3), // Para a mensagem
+            Constraint::Length(2), // Espaço entre a mensagem e o botão
+            Constraint::Length(1), // Para o botão (reduzida a altura)
+            Constraint::Min(0),    // Espaço flexível abaixo do botão
         ])
         .split(popup_area);
 
