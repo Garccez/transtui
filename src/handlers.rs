@@ -11,17 +11,7 @@ pub fn handle_events(app: &mut App, key: KeyEvent) -> Result<()> {
     match app.state {
         AppState::FileSelection => handle_file_selection(app, key),
         AppState::Editing => handle_editing(app, key),
-        AppState::SaveConfirmation => {
-            if let Some(ref confirmation) = app.save_confirmation {
-                match key.code {
-                    KeyCode::Enter | KeyCode::Char(' ') | KeyCode::Esc => {
-                        app.state = confirmation.return_to.clone();
-                    }
-                    _ => {}
-                }
-            }
-            Ok(())
-        }
+        AppState::SaveConfirmation => handle_save_confirmation(app, key),
         AppState::Exiting => Ok(()),
     }
 }
@@ -266,8 +256,12 @@ fn handle_editing(app: &mut App, key: KeyEvent) -> Result<()> {
                     app.update_search_results();
                 }
                 KeyCode::Char('q') => {
-                    app.save_current_file()?;
-                    app.state = AppState::Exiting;
+                    // Em vez de salvar e sair diretamente, mostra confirmação
+                    app.save_confirmation = Some(crate::app::SaveConfirmationState {
+                        message: app.locale.get("save_exit_confirmation").to_string(),
+                        return_to: AppState::Editing,
+                    });
+                    app.state = AppState::SaveConfirmation;
                 }
                 KeyCode::Up => {
                     let selected = state.table_state.selected().unwrap_or(0);
@@ -292,12 +286,57 @@ fn handle_editing(app: &mut App, key: KeyEvent) -> Result<()> {
                     app.switch_language()?;
                 }
                 KeyCode::Esc => {
-                    app.save_current_file()?;
-                    app.state = AppState::FileSelection;
+                    // Em vez de salvar e voltar diretamente, mostra confirmação
+                    app.save_confirmation = Some(crate::app::SaveConfirmationState {
+                        message: app.locale.get("save_return_confirmation").to_string(),
+                        return_to: AppState::Editing,
+                    });
+                    app.state = AppState::SaveConfirmation;
                 }
                 _ => {}
             }
         }
     }
+    Ok(())
+}
+
+fn handle_save_confirmation(app: &mut App, key: KeyEvent) -> Result<()> {
+    let should_exit;
+    let return_to;
+    
+    // Primeiro, extraímos as informações que precisamos
+    if let Some(confirmation) = &app.save_confirmation {
+        should_exit = confirmation.message == app.locale.get("save_exit_confirmation");
+        return_to = confirmation.return_to.clone();
+    } else {
+        // Se não tiver confirmação definida, apenas retorna
+        return Ok(());
+    }
+
+    match key.code {
+        KeyCode::Enter | KeyCode::Char(' ') => {
+            // Se estamos voltando do modo de edição
+            if return_to == AppState::Editing {
+                // Salva o arquivo
+                app.save_current_file()?;
+                
+                // Decide se sai ou volta para seleção
+                if should_exit {
+                    app.state = AppState::Exiting;
+                } else {
+                    app.state = AppState::FileSelection;
+                }
+            } else {
+                // Se estiver voltando de outro estado
+                app.state = return_to;
+            }
+        }
+        KeyCode::Esc => {
+            // Cancelado - voltar ao estado anterior
+            app.state = return_to;
+        }
+        _ => {}
+    }
+    
     Ok(())
 }

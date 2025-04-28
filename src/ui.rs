@@ -261,35 +261,66 @@ pub fn render_save_confirmation(
     app: &App,
 ) {
     let area = frame.size();
-    let popup_area = centered_rect(60, 20, area);
+    
+    // Criar uma área escurecida para o fundo do diálogo
+    frame.render_widget(
+        Block::default().style(Style::default().bg(Color::DarkGray)),
+        area,
+    );
+    
+    // Define o tamanho do popup - 50% da largura e 30% da altura
+    let popup_area = centered_rect(50, 30, area);
 
+    // Limpa a área onde o popup vai aparecer
     frame.render_widget(Clear, popup_area);
 
+    // Cria o bloco do popup
     let block = Block::default()
         .title(app.locale.get("warning_title"))
         .borders(Borders::ALL)
-        .style(Style::default().bg(Color::DarkGray));
+        .style(Style::default().bg(Color::DarkGray).fg(Color::White));
+    
     frame.render_widget(block, popup_area);
 
-    let inner_area = centered_rect(50, 10, popup_area);
+    // Área interna para o conteúdo do popup
+    let inner_area = Layout::default()
+        .direction(Direction::Vertical)
+        .margin(1)
+        .constraints([
+            Constraint::Length(3),  // Para a mensagem
+            Constraint::Length(2),  // Espaço entre a mensagem e o botão
+            Constraint::Length(1),  // Para o botão (reduzida a altura)
+            Constraint::Min(0),     // Espaço flexível abaixo do botão
+        ])
+        .split(popup_area);
 
+    // Texto da mensagem
     let text = Paragraph::new(state.message.clone())
-        .style(Style::default().add_modifier(Modifier::BOLD))
+        .style(Style::default().fg(Color::White))
         .alignment(Alignment::Center)
         .wrap(Wrap { trim: true });
 
+    frame.render_widget(text, inner_area[0]);
+
+    // Calcular área para o botão (mais estreita que a área interna)
+    let button_width = 20;
+    let button_area = Layout::default()
+        .direction(Direction::Horizontal)
+        .constraints([
+            Constraint::Percentage((100 - button_width) / 2),
+            Constraint::Percentage(button_width),
+            Constraint::Percentage((100 - button_width) / 2),
+        ])
+        .split(inner_area[2])[1];
+
+    // Botão de confirmação sem bordas para reduzir o tamanho
     let button_text = format!("[ {} ]", app.locale.get("confirm_button"));
     let button = Paragraph::new(button_text)
-        .style(Style::default().bg(Color::Green).fg(Color::White))
+        .style(Style::default().fg(Color::Black).bg(Color::Green))
         .alignment(Alignment::Center);
 
-    let inner_layout = Layout::default()
-        .direction(Direction::Vertical)
-        .constraints([Constraint::Length(3), Constraint::Length(3)])
-        .split(inner_area);
-
-    frame.render_widget(text, inner_layout[0]);
-    frame.render_widget(button, inner_layout[1]);
+    // Renderiza botão
+    frame.render_widget(button, button_area);
 }
 
 pub fn centered_rect(percent_x: u16, percent_y: u16, r: Rect) -> Rect {
