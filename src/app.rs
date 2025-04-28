@@ -46,7 +46,7 @@ pub struct EditingState {
     pub search_results: Vec<usize>,
     pub search_selection: Option<usize>,
     pub total_keys: usize,
-    pub translated_keys: usize,
+    pub translated_keys: isize,
     pub save_notification: Option<Instant>,
 }
 
@@ -79,16 +79,16 @@ impl App {
         }
 
         let language = Language::PT;
-        let locale = localization::Locale::load(match language {
-            Language::EN => "en",
-            Language::PT => "pt",
-        })?;
+        let locale = localization::Locale::from_language(language.clone())?;
 
         Ok(Self {
             state: AppState::FileSelection,
             language,
             locale,
-            file_selection: FileSelectionState { files, list_state },
+            file_selection: FileSelectionState {
+                files,
+                list_state,
+            },
             editing: None,
             save_confirmation: None,
         })
@@ -128,12 +128,7 @@ impl App {
             if let Some(selected) = state.table_state.selected() {
                 if let Some(entry) = state.entries.get_mut(selected) {
                     entry.is_translated = !entry.is_translated;
-                    if entry.is_translated {
-                        state.translated_keys += 1;
-                    } else {
-                        state.translated_keys -= 1;
-                    }
-
+                    state.translated_keys += if entry.is_translated { 1 } else { -1 };
                     let toml_path = state.original_path.with_extension("toml");
                     file_operations::save_translated_keys(&toml_path, &state.entries)?;
                 }
@@ -163,10 +158,7 @@ impl App {
             Language::EN => Language::PT,
             Language::PT => Language::EN,
         };
-        self.locale = localization::Locale::load(match self.language {
-            Language::EN => "en",
-            Language::PT => "pt",
-        })?;
+        self.locale = localization::Locale::from_language(self.language.clone())?;
         Ok(())
     }
 }

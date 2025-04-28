@@ -2,18 +2,25 @@ use anyhow::Result;
 use serde::Deserialize;
 use std::collections::HashMap;
 
+// Arquivos de tradução embutidos no binário
+const EN_TRANSLATIONS: &str = include_str!("../locales/en/app.toml");
+const PT_TRANSLATIONS: &str = include_str!("../locales/pt/app.toml");
+
 #[derive(Debug, Deserialize)]
 pub struct Locale {
     pub ui: HashMap<String, String>,
 }
 
 impl Locale {
-    pub fn load(lang: &str) -> Result<Self> {
-        let content = std::fs::read_to_string(format!("locales/{}/app.toml", lang))?;
-        Ok(toml::from_str(&content)?)
+    pub fn from_language(lang: crate::app::Language) -> Result<Self> {
+        let content = match lang {
+            crate::app::Language::EN => EN_TRANSLATIONS,
+            crate::app::Language::PT => PT_TRANSLATIONS,
+        };
+        
+        Ok(toml::from_str(content)?)
     }
-
-    // Correção do lifetime aqui
+	
     pub fn get<'a>(&'a self, key: &'a str) -> &'a str {
         self.ui.get(key).map(|s| s.as_str()).unwrap_or(key)
     }
