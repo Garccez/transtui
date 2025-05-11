@@ -1,6 +1,6 @@
 [ui]
 file_selection_title = "Selecionar Arquivo JSON"
-help_navigation = "Navegação: "
+help_navigation = "Transtui v3.4 | Navegação: "
 up_down_keys = "↑/↓"
 select_help = " Selecionar | "
 enter_key = "Enter"

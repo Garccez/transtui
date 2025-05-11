@@ -18,7 +18,7 @@ pub fn handle_events(app: &mut App, key: KeyEvent) -> Result<()> {
 
 fn handle_file_selection(app: &mut App, key: KeyEvent) -> Result<()> {
     match key.code {
-        KeyCode::Char('q') => app.state = AppState::Exiting,
+        KeyCode::Char('q') | KeyCode::Char('Q') => app.state = AppState::Exiting,
         KeyCode::Up => {
             if let Some(selected) = app.file_selection.list_state.selected() {
                 let new_selected = selected.saturating_sub(1);
@@ -247,18 +247,18 @@ fn handle_editing(app: &mut App, key: KeyEvent) -> Result<()> {
             }
         } else {
             match key.code {
-                KeyCode::Char('t') => {
+                KeyCode::Char('t') | KeyCode::Char('T') => {
                     app.toggle_translation()?;
                 }
-                KeyCode::Char('b') => {
+                KeyCode::Char('b') | KeyCode::Char('B') => {
                     app.save_current_file()?;
                 }
-                KeyCode::Char('s') => {
+                KeyCode::Char('s') | KeyCode::Char('S') => {
                     state.search_mode = true;
                     state.search_query.clear();
                     app.update_search_results();
                 }
-                KeyCode::Char('q') => {
+                KeyCode::Char('q') | KeyCode::Char('Q') => {
                     app.save_confirmation = Some(crate::app::SaveConfirmationState {
                         message: app.locale.get("save_exit_confirmation").to_string(),
                         return_to: AppState::Editing,
