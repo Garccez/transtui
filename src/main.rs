@@ -24,7 +24,7 @@ fn main() -> Result<()> {
     let backend = CrosstermBackend::new(stdout);
     let mut terminal = Terminal::new(backend)?;
 
-    // Inicializar o app
+    // Initiate app
     let mut app = App::new()?;
 
     // Run app
